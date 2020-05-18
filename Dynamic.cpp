@@ -116,7 +116,7 @@ private:
 		}
 		
 		Function& g = v->f;
-		vector<double> intersections = f.intersections(g);
+		vector<double> intersections = f.intersections_in_range(g, (double) l, (double) r);
 		
 		int m = (l + r) / 2;
 		if ((int)intersections.size() == 0)
