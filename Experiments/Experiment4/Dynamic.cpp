@@ -1,7 +1,7 @@
 #include <bits/stdc++.h>
 using namespace std;
 
-const double EPS = 1e-9;//for double evaluation
+const double EPS = 1e-5;//for double evaluation
 
 template<typename T>
 inline bool is_equal(T a, T b)
@@ -83,31 +83,31 @@ struct parabola
 	}
 };
 
-typedef parabola<int, long long> Function;
+typedef parabola<double, double> Function;
 
-const int min_query = -(1 << 30);
-const int max_query = +(1 << 30);
+struct Node
+{
+	Function f;
+	Node* l;
+	Node* r;
+	Node()
+	{
+		l = nullptr;
+		r = nullptr;
+	}
+};
+
+const double min_query = -1e7;
+const double max_query = +1e7;
 
 class SegmentTree
 {
-private:	
-	
-	struct Node
-	{
-		Function f;
-		Node* l;
-		Node* r;
-		Node()
-		{
-			l = nullptr;
-			r = nullptr;
-		}
-	};
+private:
 	
 	Node* root;
 	
-	void add_parabola(Node*& v, Function f, int l, int r, int last_type = -1)
-	{			
+	void add_parabola(Node*& v, Function f, double l, double r, int last_type = -1)
+	{		
 		if (v == nullptr)
 		{
 			v = new Node();
@@ -116,9 +116,9 @@ private:
 		}
 		
 		Function& g = v->f;
-		vector<double> intersections = f.intersections_in_range(g, (double) l, (double) r);
+		vector<double> intersections = f.intersections(g);
 		
-		int m = (l + r) / 2;
+		double m = (l + r) / 2;
 		if ((int)intersections.size() == 0)
 		{
 			if (f.query(m) < g.query(m))
@@ -126,17 +126,22 @@ private:
 			return;
 		}
 		
-		if (l + 1 >= r)
+		if ((int)l == (int)r)
 			return;
-				
+		if (is_equal<double>(l, r))
+			return;
+		
 		if ((int)intersections.size() == 1)
 		{
 			double I = intersections[0];
-			if (is_smaller<double>(I, (double)m))
+			if (is_smaller<double>(I, m))
 			{
 				if (f.query(m) < g.query(m))
 					swap(f, g);
 				
+				if (v->l == nullptr)
+					v->l = new Node();
+					
 				add_parabola(v->l, f, l, m);				
 			}
 			else
@@ -144,6 +149,9 @@ private:
 				if (f.query(l) < g.query(l))
 					swap(f, g);
 				
+				if (v->r == nullptr)
+					v->r = new Node();
+					
 				add_parabola(v->r, f, m, r);	
 			}
 			
@@ -153,23 +161,32 @@ private:
 		double I1 = intersections[0];
 		double I2 = intersections[1];
 		
-		if (is_smaller<double>(I2, (double)m))
+		if (is_smaller<double>(I2, m))
 		{
 			if (f.query(m) < g.query(m))
 				swap(f, g);
 			
+			if (v->l == nullptr)
+				v->l = new Node();
 			add_parabola(v->l, f, l, m);	
 			return;
 		}
 		
-		if (is_smaller<double>((double)m, I1) || is_equal<double>((double)m, I1))
+		if (is_smaller<double>(m, I1) || is_equal<double>(m, I1))
 		{
 			if (f.query(l) < g.query(l))
 				swap(f, g);
 				
+			if (v->r == nullptr)
+				v->r = new Node();
 			add_parabola(v->r, f, m, r);
 			return;
 		}
+		
+		if (v->l == nullptr)
+			v->l = new Node();
+		if (v->r == nullptr)
+			v->r = new Node();
 		
 		if (last_type != -1)
 		{
@@ -186,25 +203,26 @@ private:
 		{
 			if (f.query(m) < g.query(m))
 				swap(f, g);
-			add_parabola(v-> l, f, l, m, 0);
-			add_parabola(v-> r, f, m, r);
+			add_parabola(v->l, f, l, m, 0);
+			add_parabola(v->r, f, m, r);
 		}
 		else
 		{
 			if (f.query(m) > g.query(m))
 				swap(f, g);
-			add_parabola(v-> l, f, l, m, 1);
-			add_parabola(v-> r, f, m, r);
+			add_parabola(v->l, f, l, m, 1);
+			add_parabola(v->r, f, m, r);
 		}		
+		
 	}
 
-	long long get_minimum(Node* v, int x, int l, int r)
+	double get_minimum(Node* v, double x, double l, double r)
 	{
-		long long res = LLONG_MAX;
+		double res = DBL_MAX;
 		if (v != nullptr)
 		{
 			res = min(res, v->f.query(x));
-			int m = (l + r) / 2;
+			double m = (l + r) / 2;
 			if (x < m)
 				res = min(res, get_minimum(v->l, x, l, m));
 			else
@@ -223,10 +241,10 @@ public:
 		
 	void add_parabola(Function f)
 	{
-		add_parabola(root, f, min_query, max_query);
+		add_parabola(root, f, min_query, max_query, 0);
 	}	
 
-	long long get_minimum(int x)
+	double get_minimum(double x)
 	{
 		return get_minimum(root, x, min_query, max_query);
 	}
@@ -246,8 +264,8 @@ int main()
 		scanf("%d", &type);
 		if (type == 1)
 		{
-			int a, b, c;
-			scanf("%d %d %d", &a, &b, &c);
+			double a, b, c;
+			scanf("%lf %lf %lf", &a, &b, &c);
 			tree.add_parabola(Function(a, b, c));
 		}
 		else
@@ -255,7 +273,6 @@ int main()
 			int x;
 			scanf("%d", &x);
 			result += tree.get_minimum(x);
-			//printf("%lld\n", tree.get_minimum(x));
 		}
 	}
 	
