@@ -40,15 +40,16 @@ int main(int argc, char* argv[])
 		printf("%d ", type);
 		if (type == 1)
 		{
-			double a = k;
-			double b = -k * (double) 2 * (k - 1);
-			double c = k * (double) (k - 1) * (k - 1);
+			long long a = k;
+			long long b = -k * (long long) 2 * (k - 1);
+			long long c = k * (long long) (k - 1) * (k - 1);
+			c += C / 2;
 			k++;			
-			printf("%lf %lf %lf\n", a, b, c);
+			printf("%lld %lld %lld\n", a, b, c);
 		}
 		else
 		{
-			int x = random_int(-C, C, rng);
+			int x = random_int(0, C - 1, rng);
 			printf("%d\n", x);
 		}
 	}
