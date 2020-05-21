@@ -1,13 +1,14 @@
 #include <bits/stdc++.h>
 using namespace std;
 
-const double EPS = 1e-5;//for double evaluation
+const double EPS = 1e-9;//for double evaluation
 
 template<typename T>
 inline bool is_equal(T a, T b)
 {
 	if (std::is_integral<T>::value) return a == b;
-	return abs(a - b) < EPS;
+	if (a > b) return a - b < EPS;
+	else return b - a < EPS;
 }
 
 template<typename T>
@@ -83,117 +84,81 @@ struct parabola
 	}
 };
 
-typedef parabola<double, double> Function;
-
-struct Node
-{
-	Function f;
-	Node* l;
-	Node* r;
-	Node()
-	{
-		l = nullptr;
-		r = nullptr;
-	}
-};
-
-const double min_query = -1e7;
-const double max_query = +1e7;
-
+typedef parabola<long long, __int128> Function;
 class SegmentTree
 {
 private:
 	
-	Node* root;
+	int n;//size
+	vector<Function> tree;
 	
-	void add_parabola(Node*& v, Function f, double l, double r, int last_type = -1)
-	{		
-		if (v == nullptr)
-		{
-			v = new Node();
-			v->f = f;
-			return;
-		}
+	void add_parabola(Function f, int v, int l, int r, int last_type = -1)//push f to range [l, r)
+	{
+		Function& g = tree[v];
+		vector<double> intersections = g.intersections_in_range(f, (double) l, (double) r);
 		
-		Function& g = v->f;
-		vector<double> intersections = f.intersections(g);
-		
-		double m = (l + r) / 2;
-		if ((int)intersections.size() == 0)
+		if (r - l == 1 || intersections.size() == 0)//if v is leaf vertex
 		{
-			if (f.query(m) < g.query(m))
+			if (f.query(l) < g.query(l))//if this candidate is better, substitute current value at vertex by it
 				swap(f, g);
 			return;
 		}
+			
+		int m = (l + r) >> 1;
 		
-		if ((int)l == (int)r)
-			return;
-		if (is_equal<double>(l, r))
-			return;
-		
-		if ((int)intersections.size() == 1)
-		{
+		if (intersections.size() == 1)//there is exactly one intersection at range
+		{			
 			double I = intersections[0];
-			if (is_smaller<double>(I, m))
+			if (I < m)//intersection on left half
 			{
 				if (f.query(m) < g.query(m))
 					swap(f, g);
 				
-				if (v->l == nullptr)
-					v->l = new Node();
-					
-				add_parabola(v->l, f, l, m);				
+				add_parabola(f, v * 2, l, m);				
 			}
-			else
+			else//intersection on right half
 			{
 				if (f.query(l) < g.query(l))
 					swap(f, g);
 				
-				if (v->r == nullptr)
-					v->r = new Node();
-					
-				add_parabola(v->r, f, m, r);	
+				add_parabola(f, v * 2 + 1, m, r);
 			}
 			
 			return;
 		}
 		
+		//now we have two intersections
+		
 		double I1 = intersections[0];
 		double I2 = intersections[1];
 		
-		if (is_smaller<double>(I2, m))
+		if (is_smaller<double>(I2, (double) m))//both intersections are on left half
 		{
 			if (f.query(m) < g.query(m))
 				swap(f, g);
 			
-			if (v->l == nullptr)
-				v->l = new Node();
-			add_parabola(v->l, f, l, m);	
+			add_parabola(f, v * 2, l, m);	
 			return;
 		}
 		
-		if (is_smaller<double>(m, I1) || is_equal<double>(m, I1))
+		if (is_smaller<double>((double) m, I1) || is_equal<double>((double)m, I1))//both intersections are on right half
 		{
 			if (f.query(l) < g.query(l))
 				swap(f, g);
 				
-			if (v->r == nullptr)
-				v->r = new Node();
-			add_parabola(v->r, f, m, r);
+			add_parabola(f, v * 2 + 1, m, r);
 			return;
 		}
 		
-		if (v->l == nullptr)
-			v->l = new Node();
-		if (v->r == nullptr)
-			v->r = new Node();
+		//we have one intersection on left half, and one on right one
+		//so we need to push f line to both of them
 		
 		if (last_type != -1)
 		{
 			if (last_type == 0)
-				add_parabola(v->l, f, l, m);
+				add_parabola(f, v * 2, l, m);
 			else
-				add_parabola(v->r, f, m, r);
+				add_parabola(f, v * 2 + 1, m, r);
 			
 			return;
 		}
@@ -203,69 +168,72 @@ private:
 		{
 			if (f.query(m) < g.query(m))
 				swap(f, g);
-			add_parabola(v->l, f, l, m, 0);
-			add_parabola(v->r, f, m, r);
+			add_parabola(f, v * 2, l, m, 0);
+			add_parabola(f, v * 2 + 1, m, r);
 		}
 		else
 		{
 			if (f.query(m) > g.query(m))
 				swap(f, g);
-			add_parabola(v->l, f, l, m, 1);
-			add_parabola(v->r, f, m, r);
+			add_parabola(f, v * 2, l, m, 1);
+			add_parabola(f, v * 2 + 1, m, r);
 		}		
-		
-	}
+	}	
 
-	double get_minimum(Node* v, double x, double l, double r)
-	{
-		double res = DBL_MAX;
-		if (v != nullptr)
-		{
-			res = min(res, v->f.query(x));
-			double m = (l + r) / 2;
-			if (x < m)
-				res = min(res, get_minimum(v->l, x, l, m));
-			else
-				res = min(res, get_minimum(v->r, x, m, r));
-		}
-		
-		return res;
-	}
-	
 public:
-	
-	SegmentTree()
+	SegmentTree(){}
+	SegmentTree(int _n)
 	{
-		root = nullptr;
+		n = _n;
+		tree.resize(n << 2);
 	}
 		
 	void add_parabola(Function f)
 	{
-		add_parabola(root, f, min_query, max_query, 0);
+		add_parabola(f, 1, 0, n);
 	}	
 
-	double get_minimum(double x)
+	long long get_minimum(int x)
 	{
-		return get_minimum(root, x, min_query, max_query);
+		int v = 1, l = 0, r = n;
+		__int128 result = std::numeric_limits<__int128>::max();
+		while(r - l > 1)//while v is not leaf
+		{
+			int m = (l + r) >> 1;
+			result = min(result, tree[v].query(x));
+			if (x < m)//go to left child
+			{
+				v = v * 2;
+				r = m;
+			}
+			else//go to right child
+			{
+				v = v * 2 + 1;
+				l = m;
+			}
+		}
+		
+		//cerr << (double) result << endl;
+		return result;
 	}
-	
 };
 
 int main()
 {
-	SegmentTree tree;
+	const int C = 1 << 20;
+	SegmentTree tree(C);
 	
 	int q;
 	scanf("%d", &q);
-	double result = 0;
+	long long result = 0;
 	while(q--)
 	{
 		int type;
 		scanf("%d", &type);
 		if (type == 1)
 		{
-			double a, b, c;
-			scanf("%lf %lf %lf", &a, &b, &c);
+			long long a, b, c;
+			scanf("%lld %lld %lld", &a, &b, &c);
 			tree.add_parabola(Function(a, b, c));
 		}
 		else
@@ -273,10 +241,11 @@ int main()
 			int x;
 			scanf("%d", &x);
 			result += tree.get_minimum(x);
+			//printf("%lld\n", tree.get_minimum(x));
 		}
 	}
 	
 	cerr << result << endl;
-	cout << (double) clock() / CLOCKS_PER_SEC << endl;
+	cout << clock() / (double) CLOCKS_PER_SEC << endl;
 	return 0;
 }
