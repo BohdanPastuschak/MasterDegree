@@ -1,1 +1,22 @@
 Benchmark for correctness and efficiency of solution to static subtask of original problem.
+
+Problem:
+Given set S of N parabolas f_i(x) = a_i x^2 + b_i x + c_i and Q queries of type: given x, what is min{f(x) | f є S} ?
+
+Test data looks like:
+N Q
+a1 b1 c1
+a2 b2 c2 
+...
+a_N b_N c_N
+x1
+x2
+...
+xQ
+
+Files:
+1. StaticGenerator.cpp - generator of random test data. Each parabola and each query is choosen uniformly at random with coefficient is range [-C; C] for some number C. One need to pass N Q C seed to this file.
+2. StaticNaive.cpp - naive solution to given problem.
+3. StaticSolution.cpp - implementation of proposed algorithm.
+4. StaticCorrectness.sh - bash script to generate big number of tests and check whether StaticNaive.cpp and StaticSolution.cpp give same result.
+5. StaticEfficiency.sh - bash script to generate big number of tests and check time consumed by naive solution and proposed algorithm.
