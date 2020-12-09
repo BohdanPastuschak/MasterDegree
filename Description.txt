@@ -1,8 +1,0 @@
-Given initially empty set S of parabolas, one need to proceed the following queries:
-1) Add parabola f(x) = ax^2 + bx + c to S
-2) Given t, find minimum over parabolas f in S value f(t)
-
-For simplicity, let's assume that all a, b, c, t will be integers in range [0, N).
-In can be shown that algorithm can be slightly modified to do same thing with any real numbers instead.
-We will show how to proceed second query in O(log N) and first query in T(N), where T(N) will be proven
-to be O(N^0.7) (possibly better constrains can be proven too).
