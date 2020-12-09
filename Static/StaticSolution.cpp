@@ -152,7 +152,8 @@ int main(){
 		scanf("%lf", &x);
 		printf("%.3lf\n", solution.get_minimum(x));
 	}
-
 	
+
+	cerr << "Time spent by solution: " << fixed << setprecision(3) << clock() / (double) CLOCKS_PER_SEC << " seconds" << endl;
 	return 0;
 }

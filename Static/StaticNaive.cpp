@@ -22,6 +22,7 @@ int main(){
 
 		printf("%.3lf\n", res);
 	}
-	
+
+	cerr << "Time spent by naive: " << fixed << setprecision(3) << clock() / (double) CLOCKS_PER_SEC << " seconds" << endl;
 	return 0;
 }
