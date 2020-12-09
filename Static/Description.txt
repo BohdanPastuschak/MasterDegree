@@ -1,0 +1,1 @@
+Benchmark for correctness and efficiency of solution to static subtask of original problem.
