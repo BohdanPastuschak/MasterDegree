@@ -19,4 +19,6 @@ Files:
 2. StaticNaive.cpp - naive solution to given problem.
 3. StaticSolution.cpp - implementation of proposed algorithm.
 4. StaticCorrectness.sh - bash script to generate big number of tests and check whether StaticNaive.cpp and StaticSolution.cpp give same result.
-5. StaticEfficiency.sh - bash script to generate big number of tests and check time consumed by naive solution and proposed algorithm.
+5. StaticEfficiency.sh - bash script to generate big tests and check how fast are both naive and proposed solutions.
+
+One can assure on practice that complexity of proposed algorithm is indeed O(N^2 + Q log N) by, for example, running it on test with N = 5000, Q = 1000000 (C and seed can be any numbers) and see that it works as expected. 
